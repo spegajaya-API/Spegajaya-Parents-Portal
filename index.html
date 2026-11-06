@@ -1,1 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#173b52">
+  <title>SPEGAJAYA | Parents Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#173b52;--navy2:#214e65;--teal:#4e8582;--teal-soft:#e8f1ef;
+      --cream:#f6f7f3;--paper:#fffefa;--ink:#24343b;--muted:#718087;
+      --line:#e3e9e6;--gold:#c5a66b;--danger:#a94d4d;--shadow:0 14px 40px rgba(27,55,67,.08);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--cream);color:var(--ink);font-family:"DM Sans",sans-serif;min-height:100vh}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .shell{min-height:100vh}
+    .topbar{height:72px;background:rgba(255,254,250,.94);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 1180px)/2));position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
+    .brand{display:flex;align-items:center;gap:12px;color:var(--navy)}
+    .brand-mark{width:42px;height:42px;border-radius:14px;background:var(--navy);color:#fff;display:grid;place-items:center;font-family:Manrope;font-weight:800;letter-spacing:-1px}
+    .brand-name{font:800 15px Manrope;letter-spacing:.08em}
+    .brand-sub{font-size:10px;color:var(--muted);letter-spacing:.17em;margin-top:2px}
+    .top-actions{display:flex;align-items:center;gap:10px}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:#6e9c88;display:inline-block;margin-right:7px}
+    .top-note{font-size:12px;color:var(--muted)}
+    .container{width:min(1180px,calc(100% - 40px));margin:0 auto}
+    .hero{padding:48px 0 34px;display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:center}
+    .eyebrow{color:var(--teal);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+    h1,h2,h3,p{margin-top:0}
+    h1{font:800 clamp(30px,4vw,46px)/1.15 Manrope;color:var(--navy);letter-spacing:-1.5px;margin:12px 0}
+    .hero p{color:var(--muted);line-height:1.75;max-width:600px;margin:0}
+    .hero-art{min-height:190px;border-radius:26px;background:linear-gradient(135deg,#e7efeb,#dbe8e5);position:relative;overflow:hidden;padding:26px;display:flex;align-items:flex-end}
+    .hero-art:before,.hero-art:after{content:"";position:absolute;border:1px solid rgba(35,78,91,.16);border-radius:50%}
+    .hero-art:before{width:230px;height:230px;right:12px;top:-100px}
+    .hero-art:after{width:170px;height:170px;right:42px;top:-70px}
+    .art-copy{position:relative;z-index:1;color:var(--navy);max-width:230px}
+    .art-copy strong{font:700 18px/1.4 Manrope;display:block}
+    .art-copy span{font-size:12px;color:#5e777b;display:block;margin-top:8px;line-height:1.5}
+    .art-symbol{position:absolute;right:45px;bottom:25px;font-size:62px;opacity:.72}
+    .main-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding-bottom:56px}
+    .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+    .card h2{font:700 19px Manrope;color:var(--navy);margin-bottom:8px}
+    .card-intro{font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:22px}
+    .field{margin-bottom:15px}
+    label{display:block;font-size:12px;font-weight:700;color:#52636a;margin-bottom:7px}
+    input,textarea,select{width:100%;border:1px solid #dce5e1;border-radius:12px;background:#fff;padding:12px 14px;color:var(--ink);outline:none;transition:.2s}
+    input:focus,textarea:focus,select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(78,133,130,.12)}
+    textarea{min-height:130px;resize:vertical;line-height:1.6}
+    .btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:13px;transition:.2s}
+    .btn-primary{background:var(--navy);color:white}
+    .btn-primary:hover{background:var(--navy2);transform:translateY(-1px)}
+    .btn-secondary{background:var(--teal-soft);color:var(--navy)}
+    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+    .btn-danger{background:#f8eaea;color:var(--danger)}
+    .btn-block{width:100%}
+    .btn:disabled{opacity:.55;cursor:wait;transform:none}
+    .notice{font-size:12px;color:var(--muted);line-height:1.6;margin-top:14px}
+    .message{padding:11px 13px;border-radius:11px;font-size:12px;line-height:1.5;margin:12px 0}
+    .message.error{background:#fbebeb;color:#9b4141}
+    .message.success{background:#e9f3ed;color:#386c50}
+    .announcement-list{display:grid;gap:12px}
+    .announcement{border:1px solid var(--line);border-radius:14px;padding:15px;background:#fff}
+    .announcement h3{font:700 14px Manrope;color:var(--navy);margin:0 0 7px}
+    .announcement p{font-size:12px;line-height:1.7;color:#5f6e73;margin:0;white-space:pre-wrap}
+    .announcement small{display:block;color:#8a989b;font-size:10px;margin-top:10px}
+    .empty{padding:20px;border:1px dashed #d8e2de;border-radius:14px;color:var(--muted);font-size:12px;text-align:center}
+    .footer{border-top:1px solid var(--line);padding:22px 20px;text-align:center;color:#879397;font-size:11px}
+    .app-layout{display:grid;grid-template-columns:235px 1fr;gap:24px;padding:30px 0 55px}
+    .sidebar{background:var(--navy);color:#eaf1f0;border-radius:20px;padding:22px;height:max-content;position:sticky;top:94px}
+    .side-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#a9c1c2;margin:6px 10px 16px}
+    .nav-btn{width:100%;text-align:left;background:transparent;border:0;color:#d9e5e4;padding:12px 13px;border-radius:11px;margin:3px 0;font-size:13px}
+    .nav-btn.active,.nav-btn:hover{background:rgba(255,255,255,.13);color:#fff}
+    .side-bottom{border-top:1px solid rgba(255,255,255,.15);margin-top:22px;padding-top:16px}
+    .content-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:22px}
+    .content-head h1{font-size:28px;margin:5px 0}
+    .content-head p{font-size:12px;color:var(--muted);margin:0}
+    .panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:var(--shadow)}
+    .panel h2{font:700 17px Manrope;color:var(--navy);margin-bottom:7px}
+    .children{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:18px}
+    .child-card{border:1px solid var(--line);border-radius:14px;padding:17px;background:#fff}
+    .child-avatar{width:38px;height:38px;background:var(--teal-soft);color:var(--teal);border-radius:12px;display:grid;place-items:center;font-weight:800;margin-bottom:12px}
+    .child-card strong{font:700 14px Manrope;color:var(--navy);display:block}
+    .child-card span{font-size:11px;color:var(--muted);display:block;margin-top:5px}
+    .feature-placeholder{display:flex;align-items:center;gap:14px;background:#f3f6f3;border-radius:14px;padding:16px;margin-top:14px}
+    .feature-icon{width:42px;height:42px;border-radius:13px;background:#e1ece8;display:grid;place-items:center;font-size:20px}
+    .feature-placeholder strong{font-size:13px;color:var(--navy)}
+    .feature-placeholder p{font-size:11px;color:var(--muted);margin:4px 0 0;line-height:1.5}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+    .toolbar .btn{padding:9px 13px}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#7b898d}
+    td{line-height:1.55}
+    .pill{display:inline-block;border-radius:20px;padding:5px 9px;font-size:10px;font-weight:700;background:#edf2ef;color:#52766a}
+    .pill.off{background:#f3eeee;color:#9a6868}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .row-actions .btn{padding:7px 9px;font-size:10px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(14,34,43,.45);display:grid;place-items:center;padding:20px;z-index:30}
+    .modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--paper);border-radius:20px;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.2)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .modal-head h2{font:700 18px Manrope;color:var(--navy);margin:0}
+    .close{border:0;background:#edf2ef;border-radius:9px;width:32px;height:32px;color:var(--navy);font-size:18px}
+    .checkline{display:flex;align-items:center;gap:9px;font-size:12px;color:#52636a;margin:10px 0 16px}
+    .checkline input{width:auto}
+    .loading{opacity:.6;pointer-events:none}
+    @media(max-width:800px){
+      .hero{grid-template-columns:1fr;padding-top:34px}.hero-art{min-height:150px}
+      .main-grid{grid-template-columns:1fr}.app-layout{grid-template-columns:1fr}
+      .sidebar{position:static;display:flex;gap:4px;overflow:auto;padding:12px}
+      .side-label,.side-bottom{display:none}.nav-btn{white-space:nowrap;width:auto;margin:0}
+      .content-head{align-items:center}.top-note{display:none}
+    }
+    @media(max-width:480px){
+      .container{width:min(100% - 26px,1180px)}.topbar{padding:0 14px;height:64px}
+      .card,.panel{padding:19px}.brand-name{font-size:13px}.hero-art{display:none}
+      .content-head h1{font-size:23px}.app-layout{padding-top:18px}
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div><div class="brand-name">SPEGAJAYA</div><div class="brand-sub">PARENTS PORTAL</div></div>
+    </div>
+    <div class="top-actions"><span class="top-note"><i class="status-dot"></i>Layanan informasi sekolah</span><button class="btn btn-ghost" id="adminEntry">Admin</button></div>
+  </header>
+
+  <main id="publicView">
+    <section class="container hero">
+      <div><div class="eyebrow">Terhubung · Terbuka · Terpercaya</div>
+        <h1>Ruang informasi<br>keluarga SPEGAJAYA.</h1>
+        <p>Portal resmi untuk membantu orang tua mengikuti informasi sekolah, mengenal layanan pendidikan, dan menyampaikan masukan dengan mudah.</p>
+      </div>
+      <div class="hero-art"><div class="art-copy"><strong>Kolaborasi yang baik dimulai dari komunikasi yang jernih.</strong><span>Bersama mendampingi tumbuh kembang putra-putri kita.</span></div><div class="art-symbol">✳</div></div>
+    </section>
+
+    <section class="container main-grid">
+      <div class="card">
+        <div class="eyebrow">Akses keluarga</div><h2>Masuk ke portal orang tua</h2>
+        <p class="card-intro">Gunakan nomor HP yang terdaftar di sekolah dan PIN dari pihak sekolah.</p>
+        <form id="parentLoginForm">
+          <div class="field"><label for="parentPhone">Nomor HP orang tua</label><input id="parentPhone" inputmode="tel" autocomplete="tel" placeholder="Contoh: 0812xxxxxxxx" required></div>
+          <div class="field"><label for="parentPin">PIN 6 digit</label><input id="parentPin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="Masukkan PIN" required></div>
+          <button class="btn btn-primary btn-block" type="submit">Masuk ke portal <span aria-hidden="true">→</span></button>
+          <div id="parentLoginMessage" aria-live="polite"></div>
+        </form>
+        <p class="notice">Jika belum menerima PIN atau mengalami kendala masuk, silakan menghubungi pihak sekolah.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Kabar sekolah</div><h2>Pengumuman</h2>
+        <p class="card-intro">Informasi dan pemberitahuan resmi yang sedang berlaku.</p>
+        <div id="publicAnnouncements" class="announcement-list"><div class="empty">Memuat pengumuman sekolah…</div></div>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <div class="eyebrow">Suara keluarga</div><h2>Saran, kritik, dan pengaduan</h2>
+        <p class="card-intro">Masukan orang tua membantu sekolah memperbaiki layanan. Pesan dapat dikirim dengan identitas atau secara anonim.</p>
+        <form id="complaintForm">
+          <div class="main-grid" style="padding:0;gap:14px">
+            <div>
+              <div class="field"><label for="complaintCategory">Kategori pesan</label><select id="complaintCategory" required><option value="">Pilih kategori</option><option>Saran</option><option>Kritik</option><option>Pengaduan</option></select></div>
+              <label class="checkline"><input type="checkbox" id="anonymousCheck"> Kirim secara anonim</label>
+              <div id="identityFields">
+                <div class="field"><label for="senderName">Nama pengirim</label><input id="senderName" maxlength="100" placeholder="Nama orang tua/wali"></div>
+                <div class="field"><label for="senderPhone">Nomor HP (opsional)</label><input id="senderPhone" inputmode="tel" placeholder="08xxxxxxxxxx"></div>
+              </div>
+            </div>
+            <div>
+              <div class="field"><label for="complaintText">Isi pesan</label><textarea id="complaintText" minlength="10" maxlength="3000" placeholder="Tuliskan masukan secara jelas dan santun (10–3000 karakter)." required></textarea></div>
+              <button class="btn btn-primary" type="submit">Kirim masukan</button>
+              <div id="complaintMessage" aria-live="polite"></div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <main id="parentApp" class="container app-layout hidden">
+    <aside class="sidebar">
+      <div class="side-label">Menu orang tua</div>
+      <button class="nav-btn active" data-parent-tab="home">⌂ &nbsp; Ringkasan</button>
+      <button class="nav-btn" data-parent-tab="announcements">▤ &nbsp; Pengumuman</button>
+      <button class="nav-btn" data-parent-tab="complaint">✉ &nbsp; Sampaikan masukan</button>
+      <div class="side-bottom"><button class="nav-btn" id="parentLogout">↪ &nbsp; Keluar</button></div>
+    </aside>
+    <section>
+      <div class="content-head"><div><div class="eyebrow">Parents portal</div><h1 id="parentGreeting">Selamat datang</h1><p>Informasi keluarga dan layanan sekolah dalam satu tempat.</p></div><span class="pill">AKUN ORANG TUA</span></div>
+      <div id="parentTabHome" class="parent-tab">
+        <div class="panel"><h2>Data putra-putri</h2><p class="card-intro">Anak yang terhubung dengan nomor HP akun ini.</p><div id="childrenList" class="children"></div></div>
+        <div class="panel"><h2>Rekap kehadiran</h2><div class="feature-placeholder"><div class="feature-icon">▦</div><div><strong>Rekap kehadiran akan dihubungkan pada tahap berikutnya.</strong><p>Backend saat ini belum menyediakan endpoint pembacaan riwayat Presensi dan Dhuhur. Data kehadiran tidak ditampilkan sebelum integrasi tersebut selesai.</p></div></div></div>
+      </div>
+      <div id="parentTabAnnouncements" class="parent-tab hidden"><div class="panel"><h2>Pengumuman sekolah</h2><div id="parentAnnouncements" class="announcement-list"></div></div></div>
+      <div id="parentTabComplaint" class="parent-tab hidden"><div class="panel"><h2>Sampaikan masukan</h2><p class="card-intro">Gunakan formulir ini untuk mengirim saran, kritik, atau pengaduan kepada sekolah.</p><form id="parentComplaintForm"><div class="field"><label>Kategori</label><select id="parentComplaintCategory" required><option value="">Pilih kategori</option><option>Saran</option><option>Kritik</option><option>Pengaduan</option></select></div><div class="field"><label>Pesan</label><textarea id="parentComplaintText" minlength="10" maxlength="3000" required></textarea></div><button class="btn btn-primary">Kirim masukan</button><div id="parentComplaintMessage"></div></form></div></div>
+    </section>
+  </main>
+
+  <main id="adminApp" class="container app-layout hidden">
+    <aside class="sidebar">
+      <div class="side-label">Administrasi portal</div>
+      <button class="nav-btn active" data-admin-tab="announcements">▤ &nbsp; Kelola pengumuman</button>
+      <button class="nav-btn" data-admin-tab="complaints">✉ &nbsp; Kelola pengaduan</button>
+      <div class="side-bottom"><button class="nav-btn" id="adminLogout">↪ &nbsp; Keluar admin</button></div>
+    </aside>
+    <section>
+      <div class="content-head"><div><div class="eyebrow">Ruang pengelola</div><h1>Panel Admin</h1><p>Kelola komunikasi dan tindak lanjut layanan sekolah.</p></div><span class="pill">ADMIN</span></div>
+      <div id="adminTabAnnouncements" class="admin-tab">
+        <div class="panel">
+          <div class="content-head"><div><h2>Daftar pengumuman</h2><p>Tambah, sunting, dan atur status publikasi.</p></div><button class="btn btn-primary" id="newAnnouncement">+ Pengumuman baru</button></div>
+          <div id="adminAnnouncementsTable" class="table-wrap"><div class="empty">Memuat data…</div></div>
+        </div>
+      </div>
+      <div id="adminTabComplaints" class="admin-tab hidden">
+        <div class="panel">
+          <div class="content-head"><div><h2>Daftar masukan orang tua</h2><p>Identitas pengirim anonim tidak ditampilkan.</p></div><button class="btn btn-secondary" id="exportComplaints">Cetak PDF</button></div>
+          <div id="adminComplaintsTable" class="table-wrap"><div class="empty">Memuat data…</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">SPEGAJAYA Parents Portal · Layanan komunikasi sekolah dan keluarga</footer>
+</div>
+
+<div id="adminLoginModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-head"><h2>Masuk sebagai Admin</h2><button class="close" data-close="adminLoginModal">×</button></div>
+    <p class="card-intro">Gunakan akun AdminPortal yang telah disiapkan oleh sekolah.</p>
+    <form id="adminLoginForm"><div class="field"><label>Username admin</label><input id="adminUsername" autocomplete="username" required></div><div class="field"><label>PIN admin (6 digit)</label><input id="adminPin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" required></div><button class="btn btn-primary btn-block">Masuk sebagai admin</button><div id="adminLoginMessage"></div></form>
+  </div>
+</div>
+
+<div id="announcementModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-head"><h2 id="announcementModalTitle">Pengumuman baru</h2><button class="close" data-close="announcementModal">×</button></div>
+    <form id="announcementForm">
+      <input type="hidden" id="announcementId">
+      <div class="field"><label>Judul</label><input id="announcementTitle" maxlength="150" required></div>
+      <div class="field"><label>Isi pengumuman</label><textarea id="announcementBody" maxlength="3000" required></textarea></div>
+      <div class="main-grid" style="padding:0;gap:12px">
+        <div class="field"><label>Tanggal mulai (opsional)</label><input id="announcementStart" type="date"></div>
+        <div class="field"><label>Tanggal selesai (opsional)</label><input id="announcementEnd" type="date"></div>
+      </div>
+      <div class="main-grid" style="padding:0;gap:12px">
+        <div class="field"><label>Urutan tampil</label><input id="announcementOrder" type="number" min="1" max="9999" value="1" required></div>
+        <div class="field"><label>Status</label><select id="announcementStatus"><option>Aktif</option><option>Nonaktif</option></select></div>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Simpan pengumuman</button><div id="announcementFormMessage"></div>
+    </form>
+  </div>
+</div>
+
+<div id="complaintModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-head"><h2>Tindak lanjut masukan</h2><button class="close" data-close="complaintModal">×</button></div>
+    <form id="complaintUpdateForm"><input type="hidden" id="updateComplaintId"><div id="complaintDetail" class="card-intro"></div>
+      <div class="field"><label>Status</label><select id="updateComplaintStatus"><option>Baru</option><option>Diproses</option><option>Selesai</option></select></div>
+      <div class="field"><label>Catatan tindak lanjut</label><textarea id="updateComplaintNote" maxlength="3000"></textarea></div>
+      <button class="btn btn-primary btn-block">Simpan tindak lanjut</button><div id="complaintUpdateMessage"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // URL Web App Apps Script milik SPEGAJAYA Parents Portal.
+  const API_URL = "https://script.google.com/macros/s/AKfycbzzXFfXZq31-_Y_4bRd3kYhxNX2caemE7d6FlicGW5xkU908xQZ4epWbxjkcNVdCt9Skg/exec";
+  const state = { parentToken:"", adminToken:"", children:[], announcements:[], adminAnnouncements:[], complaints:[] };
+
+  const $ = id => document.getElementById(id);
+  const show = id => $(id).classList.remove("hidden");
+  const hide = id => $(id).classList.add("hidden");
+  const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function message(target,text,type="error"){ $(target).innerHTML = `<div class="message ${type}">${escapeHTML(text)}</div>`; }
+  function clearMessage(target){ $(target).innerHTML=""; }
+  function setBusy(button,busy,label){ if(!button)return; button.disabled=busy; if(busy){button.dataset.oldText=button.textContent;button.textContent=label||"Memproses…";}else if(button.dataset.oldText){button.textContent=button.dataset.oldText;delete button.dataset.oldText;} }
+
+  async function api(payload){
+    // text/plain menghindari preflight CORS untuk permintaan lintas domain.
+    // Jika browser tetap menolak respons Google, periksa pesan koneksi dan konfigurasi deployment.
+    const response = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload),redirect:"follow"});
+    if(!response.ok) throw new Error("Layanan tidak merespons dengan baik (HTTP "+response.status+").");
+    const text = await response.text();
+    try{return JSON.parse(text);}catch(e){throw new Error("Respons layanan tidak terbaca. Pastikan URL deployment /exec masih aktif.");}
+  }
+
+  function renderAnnouncements(target,items){
+    const el=$(target);
+    if(!items || !items.length){el.innerHTML='<div class="empty">Belum ada pengumuman aktif.</div>';return;}
+    el.innerHTML=items.map(item=>`<article class="announcement"><h3>${escapeHTML(item.judul)}</h3><p>${escapeHTML(item.isi)}</p></article>`).join("");
+  }
+  async function loadPublicAnnouncements(){
+    try{const r=await api({action:"getPengumuman"});if(r.status!=="success")throw new Error(r.message||"Gagal memuat pengumuman.");state.announcements=r.pengumuman||[];renderAnnouncements("publicAnnouncements",state.announcements);}
+    catch(e){$("publicAnnouncements").innerHTML=`<div class="empty">Pengumuman belum dapat dimuat. ${escapeHTML(e.message)}</div>`;}
+  }
+
+  $("parentLoginForm").addEventListener("submit",async e=>{
+    e.preventDefault();const btn=e.submitter;setBusy(btn,true,"Memeriksa akun…");clearMessage("parentLoginMessage");
+    try{
+      const r=await api({action:"login",noHP:$("parentPhone").value.trim(),pin:$("parentPin").value.trim()});
+      if(r.status==="ganti_pin"){state.parentToken=r.token;hide("publicView");show("parentApp");$("parentApp").innerHTML=`<section style="grid-column:1/-1"><div class="panel" style="max-width:520px;margin:45px auto"><div class="eyebrow">Keamanan akun</div><h2>Buat PIN pribadi</h2><p class="card-intro">Ini adalah login pertama. Ganti PIN awal dengan PIN pribadi 6 digit yang hanya diketahui Anda.</p><form id="firstPinForm"><div class="field"><label>PIN baru</label><input id="newParentPin" type="password" inputmode="numeric" maxlength="6" required></div><div class="field"><label>Ulangi PIN baru</label><input id="confirmParentPin" type="password" inputmode="numeric" maxlength="6" required></div><button class="btn btn-primary btn-block">Simpan PIN dan lanjutkan</button><div id="firstPinMessage"></div></form></div></section>`; $("firstPinForm").addEventListener("submit",changeFirstPin);return;}
+      if(r.status!=="success")throw new Error(r.message||"Login gagal.");
+      state.parentToken=r.token;state.children=r.anak||[];showParentApp();
+    }catch(err){message("parentLoginMessage",err.message);}
+    finally{setBusy(btn,false);}
+  });
+
+  async function changeFirstPin(e){
+    e.preventDefault();const a=$("newParentPin").value,b=$("confirmParentPin").value;
+    if(!/^\d{6}$/.test(a)){message("firstPinMessage","PIN harus terdiri dari 6 angka.");return;}
+    if(a!==b){message("firstPinMessage","Konfirmasi PIN belum sama.");return;}
+    const btn=e.submitter;setBusy(btn,true,"Menyimpan PIN…");
+    try{const r=await api({action:"gantiPIN",token:state.parentToken,pinBaru:a});if(r.status!=="success")throw new Error(r.message||"PIN gagal diperbarui.");state.children=r.anak||[];showParentApp();}
+    catch(err){message("firstPinMessage",err.message);}finally{setBusy(btn,false);}
+  }
+  function showParentApp(){
+    hide("publicView");hide("adminApp");show("parentApp");
+    $("parentGreeting").textContent="Selamat datang di Parents Portal";
+    $("childrenList").innerHTML=state.children.length?state.children.map(c=>`<div class="child-card"><div class="child-avatar">${escapeHTML((c.nama||"S").trim().charAt(0).toUpperCase())}</div><strong>${escapeHTML(c.nama)}</strong><span>Kelas ${escapeHTML(c.kelas)}</span></div>`).join(""):'<div class="empty">Belum ada data anak yang terhubung dengan akun ini.</div>';
+    renderAnnouncements("parentAnnouncements",state.announcements);selectParentTab("home");
+  }
+  function selectParentTab(tab){
+    document.querySelectorAll("[data-parent-tab]").forEach(b=>b.classList.toggle("active",b.dataset.parentTab===tab));
+    ["home","announcements","complaint"].forEach(t=>$("parentTab"+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle("hidden",t!==tab));
+    if(tab==="announcements")loadParentAnnouncements();
+  }
+  async function loadParentAnnouncements(){try{const r=await api({action:"getPengumuman"});if(r.status==="success"){state.announcements=r.pengumuman||[];renderAnnouncements("parentAnnouncements",state.announcements);}}catch(e){$("parentAnnouncements").innerHTML=`<div class="empty">${escapeHTML(e.message)}</div>`;}}
+  document.querySelectorAll("[data-parent-tab]").forEach(b=>b.addEventListener("click",()=>selectParentTab(b.dataset.parentTab)));
+  $("parentLogout").addEventListener("click",()=>{state.parentToken="";state.children=[];hide("parentApp");show("publicView");$("parentLoginForm").reset();});
+
+  $("anonymousCheck").addEventListener("change",()=>{$("identityFields").classList.toggle("hidden",$("anonymousCheck").checked);});
+  async function submitComplaint(category,text,anon,name,phone,target,form){
+    const btn=form.querySelector('button[type="submit"],button:not([type])');setBusy(btn,true,"Mengirim…");clearMessage(target);
+    try{const r=await api({action:"kirimPengaduan",kategori:category,isiPesan:text,anonim:anon,nama:name,noHP:phone});if(r.status!=="success")throw new Error(r.message||"Pesan gagal dikirim.");message(target,r.message||"Pesan terkirim.", "success");form.reset();}
+    catch(e){message(target,e.message);}finally{setBusy(btn,false);$("identityFields").classList.toggle("hidden",$("anonymousCheck").checked);}
+  }
+  $("complaintForm").addEventListener("submit",e=>{e.preventDefault();submitComplaint($("complaintCategory").value,$("complaintText").value,$("anonymousCheck").checked,$("senderName").value,$("senderPhone").value,"complaintMessage",e.currentTarget);});
+  $("parentComplaintForm").addEventListener("submit",e=>{e.preventDefault();submitComplaint($("parentComplaintCategory").value,$("parentComplaintText").value,false,"Orang tua terverifikasi","","parentComplaintMessage",e.currentTarget);});
+
+  $("adminEntry").addEventListener("click",()=>show("adminLoginModal"));
+  document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>hide(b.dataset.close)));
+  $("adminLoginModal").addEventListener("click",e=>{if(e.target.id==="adminLoginModal")hide("adminLoginModal");});
+  $("adminLoginForm").addEventListener("submit",async e=>{
+    e.preventDefault();const btn=e.submitter;setBusy(btn,true,"Memeriksa akun…");clearMessage("adminLoginMessage");
+    try{const r=await api({action:"loginAdmin",username:$("adminUsername").value,pin:$("adminPin").value});if(r.status!=="success")throw new Error(r.message||"Login admin gagal.");state.adminToken=r.token;hide("adminLoginModal");showAdminApp();}
+    catch(err){message("adminLoginMessage",err.message);}finally{setBusy(btn,false);}
+  });
+  function showAdminApp(){hide("publicView");hide("parentApp");show("adminApp");selectAdminTab("announcements");loadAdminAnnouncements();}
+  function selectAdminTab(tab){
+    document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));
+    $("adminTabAnnouncements").classList.toggle("hidden",tab!=="announcements");$("adminTabComplaints").classList.toggle("hidden",tab!=="complaints");
+    if(tab==="complaints")loadAdminComplaints();
+  }
+  document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("click",()=>selectAdminTab(b.dataset.adminTab)));
+  $("adminLogout").addEventListener("click",()=>{state.adminToken="";hide("adminApp");show("publicView");$("adminLoginForm").reset();});
+  $("newAnnouncement").addEventListener("click",()=>openAnnouncement());
+  function openAnnouncement(item=null){
+    $("announcementForm").reset();$("announcementId").value=item?.id||"";$("announcementTitle").value=item?.judul||"";$("announcementBody").value=item?.isi||"";$("announcementStart").value=item?.tanggalMulai||"";$("announcementEnd").value=item?.tanggalSelesai||"";$("announcementOrder").value=item?.urutan||1;$("announcementStatus").value=item?.status||"Aktif";$("announcementModalTitle").textContent=item?"Edit pengumuman":"Pengumuman baru";clearMessage("announcementFormMessage");show("announcementModal");
+  }
+  async function loadAdminAnnouncements(){
+    $("adminAnnouncementsTable").innerHTML='<div class="empty">Memuat daftar pengumuman…</div>';
+    try{const r=await api({action:"getPengumumanAdmin",token:state.adminToken});if(r.status!=="success")throw new Error(r.message||"Gagal memuat data.");state.adminAnnouncements=r.pengumuman||[];renderAdminAnnouncements();}
+    catch(e){$("adminAnnouncementsTable").innerHTML=`<div class="message error">${escapeHTML(e.message)}</div>`;}
+  }
+  function renderAdminAnnouncements(){
+    if(!state.adminAnnouncements.length){$("adminAnnouncementsTable").innerHTML='<div class="empty">Belum ada pengumuman. Gunakan tombol “Pengumuman baru”.</div>';return;}
+    $("adminAnnouncementsTable").innerHTML=`<table><thead><tr><th>Pengumuman</th><th>Masa tampil</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${state.adminAnnouncements.map(x=>`<tr><td><strong>${escapeHTML(x.judul)}</strong><br><span style="color:#718087">${escapeHTML(x.isi).slice(0,110)}${x.isi.length>110?"…":""}</span></td><td>${escapeHTML(x.tanggalMulai||"Tanpa batas")}<br>s.d. ${escapeHTML(x.tanggalSelesai||"Tanpa batas")}</td><td><span class="pill ${x.status==="Aktif"?"":"off"}">${escapeHTML(x.status)}</span></td><td><div class="row-actions"><button class="btn btn-secondary" data-edit-ann="${escapeHTML(x.id)}">Edit</button><button class="btn btn-ghost" data-toggle-ann="${escapeHTML(x.id)}" data-status="${x.status==="Aktif"?"Nonaktif":"Aktif"}">${x.status==="Aktif"?"Nonaktifkan":"Aktifkan"}</button></div></td></tr>`).join("")}</tbody></table>`;
+    document.querySelectorAll("[data-edit-ann]").forEach(b=>b.addEventListener("click",()=>openAnnouncement(state.adminAnnouncements.find(x=>x.id===b.dataset.editAnn))));
+    document.querySelectorAll("[data-toggle-ann]").forEach(b=>b.addEventListener("click",()=>toggleAnnouncement(b.dataset.toggleAnn,b.dataset.status)));
+  }
+  $("announcementForm").addEventListener("submit",async e=>{
+    e.preventDefault();const btn=e.submitter;setBusy(btn,true,"Menyimpan…");
+    try{const payload={action:"simpanPengumumanAdmin",token:state.adminToken,id:$("announcementId").value,judul:$("announcementTitle").value,isi:$("announcementBody").value,tanggalMulai:$("announcementStart").value,tanggalSelesai:$("announcementEnd").value,urutan:Number($("announcementOrder").value),status:$("announcementStatus").value};const r=await api(payload);if(r.status!=="success")throw new Error(r.message||"Pengumuman gagal disimpan.");message("announcementFormMessage",r.message||"Tersimpan.","success");await loadAdminAnnouncements();setTimeout(()=>hide("announcementModal"),700);}
+    catch(err){message("announcementFormMessage",err.message);}finally{setBusy(btn,false);}
+  });
+  async function toggleAnnouncement(id,status){
+    if(!confirm(`Ubah status pengumuman menjadi ${status}?`))return;
+    try{const r=await api({action:"ubahStatusPengumumanAdmin",token:state.adminToken,idPengumuman:id,status});if(r.status!=="success")throw new Error(r.message||"Status gagal diperbarui.");await loadAdminAnnouncements();}
+    catch(e){alert(e.message);}
+  }
+  async function loadAdminComplaints(){
+    $("adminComplaintsTable").innerHTML='<div class="empty">Memuat daftar masukan…</div>';
+    try{const r=await api({action:"getPengaduanAdmin",token:state.adminToken});if(r.status!=="success")throw new Error(r.message||"Gagal memuat pengaduan.");state.complaints=r.pengaduan||[];renderAdminComplaints();}
+    catch(e){$("adminComplaintsTable").innerHTML=`<div class="message error">${escapeHTML(e.message)}</div>`;}
+  }
+  function renderAdminComplaints(){
+    if(!state.complaints.length){$("adminComplaintsTable").innerHTML='<div class="empty">Belum ada masukan yang masuk.</div>';return;}
+    $("adminComplaintsTable").innerHTML=`<table><thead><tr><th>Waktu / Pengirim</th><th>Pesan</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${state.complaints.map(x=>`<tr><td>${escapeHTML(x.tanggal)}<br><strong>${x.anonim?"Anonim":escapeHTML(x.nama||"Pengirim")}</strong></td><td><span class="pill">${escapeHTML(x.kategori)}</span><br>${escapeHTML(x.isiPesan).slice(0,180)}</td><td><span class="pill">${escapeHTML(x.status)}</span></td><td><button class="btn btn-secondary" data-update-complaint="${escapeHTML(x.id)}">Tindak lanjut</button></td></tr>`).join("")}</tbody></table>`;
+    document.querySelectorAll("[data-update-complaint]").forEach(b=>b.addEventListener("click",()=>openComplaintUpdate(state.complaints.find(x=>x.id===b.dataset.updateComplaint))));
+  }
+  function openComplaintUpdate(x){$("updateComplaintId").value=x.id;$("updateComplaintStatus").value=x.status;$("updateComplaintNote").value=x.catatan||"";$("complaintDetail").innerHTML=`<strong>${escapeHTML(x.kategori)} · ${x.anonim?"Anonim":escapeHTML(x.nama||"Pengirim")}</strong><br>${escapeHTML(x.tanggal)}<p style="white-space:pre-wrap;margin-top:12px">${escapeHTML(x.isiPesan)}</p>`;clearMessage("complaintUpdateMessage");show("complaintModal");}
+  $("complaintUpdateForm").addEventListener("submit",async e=>{
+    e.preventDefault();const btn=e.submitter;setBusy(btn,true,"Menyimpan…");
+    try{const r=await api({action:"updatePengaduanAdmin",token:state.adminToken,idPengaduan:$("updateComplaintId").value,status:$("updateComplaintStatus").value,catatan:$("updateComplaintNote").value});if(r.status!=="success")throw new Error(r.message||"Gagal menyimpan tindak lanjut.");message("complaintUpdateMessage",r.message||"Tersimpan.","success");await loadAdminComplaints();setTimeout(()=>hide("complaintModal"),700);}
+    catch(err){message("complaintUpdateMessage",err.message);}finally{setBusy(btn,false);}
+  });
+  $("exportComplaints").addEventListener("click",async()=>{
+    const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1),last=new Date(now.getFullYear(),now.getMonth()+1,0);
+    const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const start=prompt("Tanggal awal laporan (YYYY-MM-DD)",fmt(first));if(!start)return;
+    const end=prompt("Tanggal akhir laporan (YYYY-MM-DD)",fmt(last));if(!end)return;
+    try{const r=await api({action:"buatPDFPengaduanAdmin",token:state.adminToken,tanggalMulai:start,tanggalAkhir:end});if(r.status!=="success")throw new Error(r.message||"PDF gagal dibuat.");const binary=atob(r.dataBase64),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);const blob=new Blob([bytes],{type:"application/pdf"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=r.namaFile||"Laporan_Pengaduan.pdf";a.click();URL.revokeObjectURL(url);}
+    catch(e){alert(e.message);}
+  });
+
+  window.addEventListener("DOMContentLoaded",loadPublicAnnouncements);
+</script>
+</body>
+</html>
 
