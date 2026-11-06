@@ -110,6 +110,35 @@
     .checkline{display:flex;align-items:center;gap:9px;font-size:12px;color:#52636a;margin:10px 0 16px}
     .checkline input{width:auto}
     .loading{opacity:.6;pointer-events:none}
+
+    .semester-banner{display:flex;align-items:center;gap:13px;background:#f0f5f2;border-radius:15px;padding:16px 18px;margin-bottom:18px}
+    .semester-banner .feature-icon{flex:0 0 42px}
+    .semester-banner strong{display:block;color:var(--navy);font:700 14px Manrope}
+    .semester-banner p{margin:4px 0 0;color:var(--muted);font-size:12px}
+    .child-attendance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:16px}
+    .child-attendance-card{border:1px solid var(--line);border-radius:15px;background:#fff;padding:16px}
+    .child-attendance-card h3{font:700 14px Manrope;color:var(--navy);margin:0 0 4px}
+    .child-attendance-card .child-class{font-size:11px;color:var(--muted);margin-bottom:12px}
+    .mini-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    .mini-stat{border-radius:10px;padding:9px;background:#f3f6f4}
+    .mini-stat b{display:block;font:800 18px Manrope;color:var(--navy)}
+    .mini-stat span{font-size:10px;color:#65777b}
+    .child-open-btn{width:100%;margin-top:12px}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:16px 0}
+    .attendance-stat{border-radius:13px;padding:13px;background:#f2f6f4;border:1px solid rgba(0,0,0,.03)}
+    .attendance-stat .stat-number{font:800 25px Manrope;line-height:1.2}
+    .attendance-stat .stat-label{font-size:11px;font-weight:700;margin-top:6px}
+    .stat-teal{background:#e0f2f1;color:#0f766e}.stat-amber{background:#fef3c7;color:#92400e}
+    .stat-pink{background:#fce7f3;color:#9d174d}.stat-violet{background:#ede9fe;color:#5b21b6}
+    .stat-red{background:#fee2e2;color:#991b1b}.stat-blue{background:#dbeafe;color:#1e40af}
+    .stat-orange{background:#ffedd5;color:#9a3412}.stat-green{background:#dcfce7;color:#166534}
+    .detail-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}
+    .detail-table-wrap{overflow:auto}
+    .detail-table-wrap table{min-width:620px}
+    .detail-table-wrap td,.detail-table-wrap th{font-size:11px}
+    .section-kicker{font:700 12px Manrope;color:var(--navy);margin:18px 0 8px}
+    @media(max-width:650px){.detail-controls{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
     @media(max-width:800px){
       .hero{grid-template-columns:1fr;padding-top:34px}.hero-art{min-height:150px}
       .main-grid{grid-template-columns:1fr}.app-layout{grid-template-columns:1fr}
@@ -184,6 +213,18 @@
     </section>
   </main>
 
+  <main id="firstPinScreen" class="container hidden">
+    <section class="panel" style="max-width:520px;margin:45px auto">
+      <div class="eyebrow">Keamanan akun</div><h2>Buat PIN pribadi</h2>
+      <p class="card-intro">Ini adalah login pertama. Ganti PIN awal dengan PIN pribadi 6 digit yang hanya diketahui Anda.</p>
+      <form id="firstPinForm">
+        <div class="field"><label>PIN baru</label><input id="newParentPin" type="password" inputmode="numeric" maxlength="6" required></div>
+        <div class="field"><label>Ulangi PIN baru</label><input id="confirmParentPin" type="password" inputmode="numeric" maxlength="6" required></div>
+        <button class="btn btn-primary btn-block">Simpan PIN dan lanjutkan</button><div id="firstPinMessage"></div>
+      </form>
+    </section>
+  </main>
+
   <main id="parentApp" class="container app-layout hidden">
     <aside class="sidebar">
       <div class="side-label">Menu orang tua</div>
@@ -195,8 +236,36 @@
     <section>
       <div class="content-head"><div><div class="eyebrow">Parents portal</div><h1 id="parentGreeting">Selamat datang</h1><p>Informasi keluarga dan layanan sekolah dalam satu tempat.</p></div><span class="pill">AKUN ORANG TUA</span></div>
       <div id="parentTabHome" class="parent-tab">
-        <div class="panel"><h2>Data putra-putri</h2><p class="card-intro">Anak yang terhubung dengan nomor HP akun ini.</p><div id="childrenList" class="children"></div></div>
-        <div class="panel"><h2>Rekap kehadiran</h2><div class="feature-placeholder"><div class="feature-icon">▦</div><div><strong>Rekap kehadiran akan dihubungkan pada tahap berikutnya.</strong><p>Backend saat ini belum menyediakan endpoint pembacaan riwayat Presensi dan Dhuhur. Data kehadiran tidak ditampilkan sebelum integrasi tersebut selesai.</p></div></div></div>
+        <div class="panel">
+          <h2>Ringkasan Kehadiran Keluarga</h2>
+          <p class="card-intro">Setiap anak memiliki rekap sendiri berdasarkan periode semester yang ditetapkan sekolah.</p>
+          <div id="parentActiveSemester" class="semester-banner">
+            <div class="feature-icon">▦</div>
+            <div><strong>Memuat periode semester…</strong><p>Ringkasan sedang disiapkan.</p></div>
+          </div>
+          <div id="childrenList" class="child-attendance-grid"><div class="empty">Memuat ringkasan kehadiran…</div></div>
+        </div>
+        <div id="selectedChildAttendance" class="panel hidden">
+          <div class="content-head">
+            <div><div class="eyebrow">Detail kehadiran anak</div><h2 id="selectedChildName">Nama siswa</h2><p id="selectedChildClass" class="card-intro"></p></div>
+            <button class="btn btn-ghost" id="closeChildDetail" type="button">Tutup detail</button>
+          </div>
+          <div class="section-kicker">Statistik presensi pagi dan pulang</div>
+          <div id="childMainStats" class="stat-grid"></div>
+          <div class="section-kicker">Statistik Sholat Dhuhur</div>
+          <div id="childDhuhurStats" class="stat-grid"></div>
+          <div class="section-kicker">Pilih periode detail</div>
+          <div class="detail-controls">
+            <div class="field"><label for="attendanceMonth">Pilih bulan</label><input type="month" id="attendanceMonth"></div>
+            <div class="field"><label for="attendanceStart">Dari tanggal</label><input type="date" id="attendanceStart"></div>
+            <div class="field"><label for="attendanceEnd">Sampai tanggal</label><input type="date" id="attendanceEnd"></div>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-primary" id="loadAttendanceDetail" type="button">Lihat detail</button>
+          </div>
+          <div id="attendanceDetailMessage" aria-live="polite"></div>
+          <div id="attendanceDetailTable" class="detail-table-wrap" style="margin-top:14px"></div>
+        </div>
       </div>
       <div id="parentTabAnnouncements" class="parent-tab hidden"><div class="panel"><h2>Pengumuman sekolah</h2><div id="parentAnnouncements" class="announcement-list"></div></div></div>
       <div id="parentTabComplaint" class="parent-tab hidden"><div class="panel"><h2>Sampaikan masukan</h2><p class="card-intro">Gunakan formulir ini untuk mengirim saran, kritik, atau pengaduan kepada sekolah.</p><form id="parentComplaintForm"><div class="field"><label>Kategori</label><select id="parentComplaintCategory" required><option value="">Pilih kategori</option><option>Saran</option><option>Kritik</option><option>Pengaduan</option></select></div><div class="field"><label>Pesan</label><textarea id="parentComplaintText" minlength="10" maxlength="3000" required></textarea></div><button class="btn btn-primary">Kirim masukan</button><div id="parentComplaintMessage"></div></form></div></div>
@@ -311,7 +380,7 @@
 <script>
   // URL Web App Apps Script milik SPEGAJAYA Parents Portal.
   const API_URL = "https://script.google.com/macros/s/AKfycbzzXFfXZq31-_Y_4bRd3kYhxNX2caemE7d6FlicGW5xkU908xQZ4epWbxjkcNVdCt9Skg/exec";
-  const state = { parentToken:"", adminToken:"", children:[], announcements:[], adminAnnouncements:[], complaints:[] };
+  const state = { parentToken:"", adminToken:"", children:[], announcements:[], adminAnnouncements:[], complaints:[], attendanceDashboard:null, selectedChild:null };
 
   const $ = id => document.getElementById(id);
   const show = id => $(id).classList.remove("hidden");
@@ -344,35 +413,182 @@
     e.preventDefault();const btn=e.submitter;setBusy(btn,true,"Memeriksa akun…");clearMessage("parentLoginMessage");
     try{
       const r=await api({action:"login",noHP:$("parentPhone").value.trim(),pin:$("parentPin").value.trim()});
-      if(r.status==="ganti_pin"){state.parentToken=r.token;hide("publicView");show("parentApp");$("parentApp").innerHTML=`<section style="grid-column:1/-1"><div class="panel" style="max-width:520px;margin:45px auto"><div class="eyebrow">Keamanan akun</div><h2>Buat PIN pribadi</h2><p class="card-intro">Ini adalah login pertama. Ganti PIN awal dengan PIN pribadi 6 digit yang hanya diketahui Anda.</p><form id="firstPinForm"><div class="field"><label>PIN baru</label><input id="newParentPin" type="password" inputmode="numeric" maxlength="6" required></div><div class="field"><label>Ulangi PIN baru</label><input id="confirmParentPin" type="password" inputmode="numeric" maxlength="6" required></div><button class="btn btn-primary btn-block">Simpan PIN dan lanjutkan</button><div id="firstPinMessage"></div></form></div></section>`; $("firstPinForm").addEventListener("submit",changeFirstPin);return;}
+      if(r.status==="ganti_pin"){state.parentToken=r.token;hide("publicView");hide("parentApp");show("firstPinScreen");return;}
       if(r.status!=="success")throw new Error(r.message||"Login gagal.");
       state.parentToken=r.token;state.children=r.anak||[];showParentApp();
     }catch(err){message("parentLoginMessage",err.message);}
     finally{setBusy(btn,false);}
   });
 
+  $("firstPinForm").addEventListener("submit",changeFirstPin);
+
   async function changeFirstPin(e){
     e.preventDefault();const a=$("newParentPin").value,b=$("confirmParentPin").value;
     if(!/^\d{6}$/.test(a)){message("firstPinMessage","PIN harus terdiri dari 6 angka.");return;}
     if(a!==b){message("firstPinMessage","Konfirmasi PIN belum sama.");return;}
     const btn=e.submitter;setBusy(btn,true,"Menyimpan PIN…");
-    try{const r=await api({action:"gantiPIN",token:state.parentToken,pinBaru:a});if(r.status!=="success")throw new Error(r.message||"PIN gagal diperbarui.");state.children=r.anak||[];showParentApp();}
+    try{const r=await api({action:"gantiPIN",token:state.parentToken,pinBaru:a});if(r.status!=="success")throw new Error(r.message||"PIN gagal diperbarui.");state.children=r.anak||[];hide("firstPinScreen");showParentApp();}
     catch(err){message("firstPinMessage",err.message);}finally{setBusy(btn,false);}
   }
   function showParentApp(){
     hide("publicView");hide("adminApp");show("parentApp");
     $("parentGreeting").textContent="Selamat datang di Parents Portal";
-    $("childrenList").innerHTML=state.children.length?state.children.map(c=>`<div class="child-card"><div class="child-avatar">${escapeHTML((c.nama||"S").trim().charAt(0).toUpperCase())}</div><strong>${escapeHTML(c.nama)}</strong><span>Kelas ${escapeHTML(c.kelas)}</span></div>`).join(""):'<div class="empty">Belum ada data anak yang terhubung dengan akun ini.</div>';
-    renderAnnouncements("parentAnnouncements",state.announcements);selectParentTab("home");
+    renderAnnouncements("parentAnnouncements",state.announcements);
+    selectParentTab("home");
+    loadParentAttendanceDashboard();
   }
+
+  function formatNumber(value){return Number(value||0).toLocaleString("id-ID");}
+
+  function renderMiniStat(value,label){
+    return `<div class="mini-stat"><b>${formatNumber(value)}</b><span>${escapeHTML(label)}</span></div>`;
+  }
+
+  function renderChildrenAttendance(){
+    const items=state.attendanceDashboard?.anak||[];
+    if(!items.length){
+      $("childrenList").innerHTML='<div class="empty">Belum ada data anak yang terhubung dengan akun ini.</div>';
+      return;
+    }
+    $("childrenList").innerHTML=items.map((item,index)=>{
+      const s=item.statistik||{};
+      return `<article class="child-attendance-card">
+        <h3>${escapeHTML(item.nama)}</h3>
+        <div class="child-class">Kelas ${escapeHTML(item.kelas)}</div>
+        <div class="mini-stats">
+          ${renderMiniStat(s.hadirTepatWaktu,"Hadir tepat waktu")}
+          ${renderMiniStat(s.hadirTerlambat,"Datang terlambat")}
+          ${renderMiniStat(s.sakit,"Sakit")}
+          ${renderMiniStat(s.ijin,"Izin")}
+          ${renderMiniStat(s.alpa,"Alpa")}
+          ${renderMiniStat(s.pulangTepatWaktu,"Pulang tepat waktu")}
+          ${renderMiniStat(s.bolos,"Bolos")}
+          ${renderMiniStat(s.sholat,"Sholat Dhuhur")}
+          ${renderMiniStat(s.tidakSholat,"Tidak Sholat")}
+          ${renderMiniStat(s.berhalangan,"Berhalangan")}
+        </div>
+        <button class="btn btn-secondary child-open-btn" type="button" data-open-child="${index}">Lihat detail anak</button>
+      </article>`;
+    }).join("");
+    document.querySelectorAll("[data-open-child]").forEach(btn=>{
+      btn.addEventListener("click",()=>openChildAttendance(Number(btn.dataset.openChild)));
+    });
+  }
+
+  async function loadParentAttendanceDashboard(){
+    $("parentActiveSemester").innerHTML='<div class="feature-icon">▦</div><div><strong>Memuat periode semester…</strong><p>Ringkasan sedang disiapkan.</p></div>';
+    $("childrenList").innerHTML='<div class="empty">Memuat ringkasan kehadiran…</div>';
+    try{
+      const r=await api({action:"getRekapKehadiranOrangTua",token:state.parentToken});
+      if(r.status!=="success")throw new Error(r.message||"Rekap kehadiran belum dapat dimuat.");
+      state.attendanceDashboard=r;
+      const sem=r.semesterAktif;
+      $("parentActiveSemester").innerHTML=sem
+        ? `<div class="feature-icon">✓</div><div><strong>${escapeHTML(sem.tahunPelajaran)} · Semester ${escapeHTML(sem.semester)}</strong><p>Periode rekap: ${escapeHTML(sem.tanggalMulai)} sampai ${escapeHTML(sem.tanggalAkhir)}</p></div>`
+        : '<div class="feature-icon">!</div><div><strong>Belum ada semester aktif</strong><p>Hubungi sekolah untuk memastikan periode semester sudah diatur.</p></div>';
+      renderChildrenAttendance();
+    }catch(err){
+      $("parentActiveSemester").innerHTML=`<div class="feature-icon">!</div><div><strong>Rekap belum dapat dimuat</strong><p>${escapeHTML(err.message)}</p></div>`;
+      $("childrenList").innerHTML=`<div class="empty">${escapeHTML(err.message)}</div>`;
+    }
+  }
+
+  function openChildAttendance(index){
+    const item=state.attendanceDashboard?.anak?.[index];
+    if(!item)return;
+    state.selectedChild=item;
+    $("selectedChildName").textContent=item.nama;
+    $("selectedChildClass").textContent="Kelas "+item.kelas;
+    const now=new Date();
+    const month=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+    $("attendanceMonth").value=month;
+    setMonthDateRange(month);
+    renderChildStats(item.statistik||{});
+    $("selectedChildAttendance").classList.remove("hidden");
+    $("selectedChildAttendance").scrollIntoView({behavior:"smooth",block:"start"});
+    loadChildAttendanceDetail();
+  }
+
+  function renderStatCard(value,label,kind){
+    return `<div class="attendance-stat ${kind}"><div class="stat-number">${formatNumber(value)}</div><div class="stat-label">${escapeHTML(label)}</div></div>`;
+  }
+
+  function renderChildStats(s){
+    $("childMainStats").innerHTML=[
+      renderStatCard(s.hadirTepatWaktu,"Hadir tepat waktu","stat-teal"),
+      renderStatCard(s.hadirTerlambat,"Datang terlambat","stat-amber"),
+      renderStatCard(s.sakit,"Sakit","stat-pink"),
+      renderStatCard(s.ijin,"Izin","stat-violet"),
+      renderStatCard(s.alpa,"Alpa","stat-red"),
+      renderStatCard(s.pulangTepatWaktu,"Pulang tepat waktu","stat-blue"),
+      renderStatCard(s.bolos,"Bolos","stat-orange")
+    ].join("");
+    $("childDhuhurStats").innerHTML=[
+      renderStatCard(s.sholat,"Sholat","stat-green"),
+      renderStatCard(s.tidakSholat,"Tidak sholat","stat-red"),
+      renderStatCard(s.berhalangan,"Berhalangan","stat-amber")
+    ].join("");
+  }
+
+  function setMonthDateRange(value){
+    if(!value)return;
+    const parts=value.split("-").map(Number);
+    if(parts.length!==2||!parts[0]||!parts[1])return;
+    const last=new Date(parts[0],parts[1],0).getDate();
+    $("attendanceStart").value=value+"-01";
+    $("attendanceEnd").value=value+"-"+String(last).padStart(2,"0");
+  }
+
+  async function loadChildAttendanceDetail(){
+    const child=state.selectedChild;
+    if(!child)return;
+    const start=$("attendanceStart").value;
+    const end=$("attendanceEnd").value;
+    if(!start||!end||start>end){
+      message("attendanceDetailMessage","Rentang tanggal tidak valid.");
+      return;
+    }
+    clearMessage("attendanceDetailMessage");
+    $("attendanceDetailTable").innerHTML='<div class="empty">Memuat detail kehadiran…</div>';
+    const button=$("loadAttendanceDetail");
+    setBusy(button,true,"Memuat detail…");
+    try{
+      const r=await api({
+        action:"getRekapKehadiranOrangTua",
+        token:state.parentToken,
+        nama:child.nama,
+        kelas:child.kelas,
+        tanggalMulai:start,
+        tanggalAkhir:end
+      });
+      if(r.status!=="success")throw new Error(r.message||"Detail kehadiran gagal dimuat.");
+      renderChildStats(r.statistik||{});
+      const rows=r.detail||[];
+      if(!rows.length){
+        $("attendanceDetailTable").innerHTML='<div class="empty">Belum ada catatan kehadiran pada rentang tanggal ini.</div>';
+      }else{
+        $("attendanceDetailTable").innerHTML=`<table><thead><tr><th>Tanggal</th><th>Datang</th><th>Jam</th><th>Pulang</th><th>Jam</th><th>Dhuhur</th></tr></thead><tbody>
+          ${rows.map(x=>`<tr><td>${escapeHTML(x.tanggal)}</td><td>${escapeHTML(x.pagi||"-")}</td><td>${escapeHTML(x.jamPagi||"-")}</td><td>${escapeHTML(x.pulang||"-")}</td><td>${escapeHTML(x.jamPulang||"-")}</td><td>${escapeHTML(x.dhuhur||"-")}</td></tr>`).join("")}
+        </tbody></table>`;
+      }
+    }catch(err){
+      $("attendanceDetailTable").innerHTML=`<div class="empty">${escapeHTML(err.message)}</div>`;
+    }finally{setBusy(button,false);}
+  }
+
+  $("attendanceMonth").addEventListener("change",e=>setMonthDateRange(e.target.value));
+  $("loadAttendanceDetail").addEventListener("click",loadChildAttendanceDetail);
+  $("closeChildDetail").addEventListener("click",()=>{$("selectedChildAttendance").classList.add("hidden");state.selectedChild=null;});
+
   function selectParentTab(tab){
     document.querySelectorAll("[data-parent-tab]").forEach(b=>b.classList.toggle("active",b.dataset.parentTab===tab));
     ["home","announcements","complaint"].forEach(t=>$("parentTab"+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle("hidden",t!==tab));
     if(tab==="announcements")loadParentAnnouncements();
+    if(tab==="home" && state.parentToken && !state.attendanceDashboard)loadParentAttendanceDashboard();
   }
   async function loadParentAnnouncements(){try{const r=await api({action:"getPengumuman"});if(r.status==="success"){state.announcements=r.pengumuman||[];renderAnnouncements("parentAnnouncements",state.announcements);}}catch(e){$("parentAnnouncements").innerHTML=`<div class="empty">${escapeHTML(e.message)}</div>`;}}
   document.querySelectorAll("[data-parent-tab]").forEach(b=>b.addEventListener("click",()=>selectParentTab(b.dataset.parentTab)));
-  $("parentLogout").addEventListener("click",()=>{state.parentToken="";state.children=[];hide("parentApp");show("publicView");$("parentLoginForm").reset();});
+  $("parentLogout").addEventListener("click",()=>{state.parentToken="";state.children=[];state.attendanceDashboard=null;state.selectedChild=null;hide("parentApp");show("publicView");$("parentLoginForm").reset();});
 
   $("anonymousCheck").addEventListener("change",()=>{$("identityFields").classList.toggle("hidden",$("anonymousCheck").checked);});
   async function submitComplaint(category,text,anon,name,phone,target,form){
