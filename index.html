@@ -208,6 +208,7 @@
       <div class="side-label">Administrasi portal</div>
       <button class="nav-btn active" data-admin-tab="announcements">▤ &nbsp; Kelola pengumuman</button>
       <button class="nav-btn" data-admin-tab="complaints">✉ &nbsp; Kelola pengaduan</button>
+      <button class="nav-btn" data-admin-tab="semester">▦ &nbsp; Pengaturan semester</button>
       <div class="side-bottom"><button class="nav-btn" id="adminLogout">↪ &nbsp; Keluar admin</button></div>
     </aside>
     <section>
@@ -222,6 +223,44 @@
         <div class="panel">
           <div class="content-head"><div><h2>Daftar masukan orang tua</h2><p>Identitas pengirim anonim tidak ditampilkan.</p></div><button class="btn btn-secondary" id="exportComplaints">Cetak PDF</button></div>
           <div id="adminComplaintsTable" class="table-wrap"><div class="empty">Memuat data…</div></div>
+        </div>
+      </div>
+      <div id="adminTabSemester" class="admin-tab hidden">
+        <div class="panel">
+          <div class="content-head">
+            <div><h2>Pengaturan semester</h2><p>Atur periode semester yang menjadi dasar rekap kehadiran orang tua.</p></div>
+            <button class="btn btn-secondary" id="refreshSemesters" type="button">Muat ulang</button>
+          </div>
+          <div id="activeSemesterInfo" class="feature-placeholder">
+            <div class="feature-icon">▦</div>
+            <div><strong>Memuat semester aktif…</strong><p>Informasi periode aktif akan ditampilkan di sini.</p></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2 id="semesterFormTitle">Tambah periode semester</h2>
+          <p class="card-intro">Satu periode aktif digunakan sebagai dasar ringkasan kehadiran. Periode lama tetap disimpan sebagai arsip.</p>
+          <form id="semesterForm">
+            <input type="hidden" id="semesterOriginalYear">
+            <input type="hidden" id="semesterOriginalTerm">
+            <div class="main-grid" style="padding:0;gap:12px">
+              <div class="field"><label for="semesterYear">Tahun pelajaran</label><input id="semesterYear" placeholder="2026/2027" pattern="\\d{4}/\\d{4}" required></div>
+              <div class="field"><label for="semesterNumber">Semester</label><select id="semesterNumber" required><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div>
+            </div>
+            <div class="main-grid" style="padding:0;gap:12px">
+              <div class="field"><label for="semesterStart">Tanggal mulai</label><input id="semesterStart" type="date" required></div>
+              <div class="field"><label for="semesterEnd">Tanggal akhir</label><input id="semesterEnd" type="date" required></div>
+            </div>
+            <div class="field"><label for="semesterStatus">Status periode</label><select id="semesterStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div>
+            <div class="toolbar">
+              <button class="btn btn-primary" id="saveSemesterButton" type="submit">Simpan periode</button>
+              <button class="btn btn-ghost" id="cancelSemesterEdit" type="button">Bersihkan formulir</button>
+            </div>
+            <div id="semesterFormMessage" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="panel">
+          <div class="content-head"><div><h2>Riwayat periode semester</h2><p>Periode aktif dan periode yang sudah berlalu.</p></div></div>
+          <div id="semesterTable" class="table-wrap"><div class="empty">Memuat daftar semester…</div></div>
         </div>
       </div>
     </section>
@@ -355,10 +394,146 @@
   function showAdminApp(){hide("publicView");hide("parentApp");show("adminApp");selectAdminTab("announcements");loadAdminAnnouncements();}
   function selectAdminTab(tab){
     document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));
-    $("adminTabAnnouncements").classList.toggle("hidden",tab!=="announcements");$("adminTabComplaints").classList.toggle("hidden",tab!=="complaints");
+    $("adminTabAnnouncements").classList.toggle("hidden",tab!=="announcements");
+    $("adminTabComplaints").classList.toggle("hidden",tab!=="complaints");
+    $("adminTabSemester").classList.toggle("hidden",tab!=="semester");
     if(tab==="complaints")loadAdminComplaints();
+    if(tab==="semester")loadSemesterSettings();
   }
   document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("click",()=>selectAdminTab(b.dataset.adminTab)));
+
+  // =====================================================
+  // PENGATURAN SEMESTER — ADMIN
+  // =====================================================
+  let semesterRows = [];
+
+  function resetSemesterForm(){
+    $("semesterForm").reset();
+    $("semesterOriginalYear").value="";
+    $("semesterOriginalTerm").value="";
+    $("semesterNumber").disabled=false;
+    $("semesterYear").disabled=false;
+    $("semesterFormTitle").textContent="Tambah periode semester";
+    $("saveSemesterButton").textContent="Simpan periode";
+    clearMessage("semesterFormMessage");
+  }
+
+  async function loadSemesterSettings(){
+    $("semesterTable").innerHTML='<div class="empty">Memuat daftar semester…</div>';
+    $("activeSemesterInfo").innerHTML='<div class="feature-icon">▦</div><div><strong>Memuat semester aktif…</strong><p>Informasi periode aktif akan ditampilkan di sini.</p></div>';
+    try{
+      const [listResult,activeResult]=await Promise.all([
+        api({action:"getPengaturanSemesterAdmin",token:state.adminToken}),
+        api({action:"getSemesterAktifAdmin",token:state.adminToken})
+      ]);
+      if(listResult.status!=="success")throw new Error(listResult.message||"Daftar semester gagal dimuat.");
+      if(activeResult.status!=="success")throw new Error(activeResult.message||"Semester aktif gagal dibaca.");
+      semesterRows=listResult.daftar||[];
+      const active=activeResult.semesterAktif;
+      $("activeSemesterInfo").innerHTML=active
+        ? `<div class="feature-icon">✓</div><div><strong>${escapeHTML(active.tahunPelajaran)} · Semester ${escapeHTML(active.semester)}</strong><p>Periode aktif: ${escapeHTML(active.tanggalMulai)} sampai ${escapeHTML(active.tanggalAkhir)}</p></div>`
+        : '<div class="feature-icon">!</div><div><strong>Belum ada semester aktif</strong><p>Tambahkan periode dan atur statusnya menjadi Aktif.</p></div>';
+      renderSemesterTable();
+    }catch(err){
+      $("semesterTable").innerHTML=`<div class="message error">${escapeHTML(err.message)}</div>`;
+      $("activeSemesterInfo").innerHTML=`<div class="message error">${escapeHTML(err.message)}</div>`;
+    }
+  }
+
+  function renderSemesterTable(){
+    if(!semesterRows.length){
+      $("semesterTable").innerHTML='<div class="empty">Belum ada periode semester tersimpan.</div>';
+      return;
+    }
+    $("semesterTable").innerHTML=`<table><thead><tr><th>Tahun pelajaran</th><th>Semester</th><th>Periode</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+      ${semesterRows.map((x,i)=>`<tr>
+        <td><strong>${escapeHTML(x.tahunPelajaran)}</strong></td>
+        <td>${escapeHTML(x.semester)}</td>
+        <td>${escapeHTML(x.tanggalMulai)}<br>s.d. ${escapeHTML(x.tanggalAkhir)}</td>
+        <td><span class="pill ${x.status==="Aktif"?"":"off"}">${escapeHTML(x.status)}</span></td>
+        <td><div class="row-actions">
+          <button class="btn btn-secondary" type="button" data-edit-semester="${i}">Edit</button>
+          ${x.status==="Aktif"?"":`<button class="btn btn-ghost" type="button" data-activate-semester="${i}">Aktifkan</button>`}
+        </div></td>
+      </tr>`).join("")}
+    </tbody></table>`;
+    document.querySelectorAll("[data-edit-semester]").forEach(b=>b.addEventListener("click",()=>editSemester(Number(b.dataset.editSemester))));
+    document.querySelectorAll("[data-activate-semester]").forEach(b=>b.addEventListener("click",()=>activateSemester(Number(b.dataset.activateSemester))));
+  }
+
+  function editSemester(index){
+    const x=semesterRows[index];
+    if(!x)return;
+    $("semesterOriginalYear").value=x.tahunPelajaran;
+    $("semesterOriginalTerm").value=x.semester;
+    $("semesterYear").value=x.tahunPelajaran;
+    $("semesterNumber").value=x.semester;
+    $("semesterNumber").disabled=true;
+    $("semesterYear").disabled=true;
+    $("semesterStart").value=x.tanggalMulai;
+    $("semesterEnd").value=x.tanggalAkhir;
+    $("semesterStatus").value=x.status;
+    $("semesterFormTitle").textContent="Edit periode semester";
+    $("saveSemesterButton").textContent="Simpan perubahan";
+    clearMessage("semesterFormMessage");
+    $("semesterForm").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  async function saveSemester(event){
+    event.preventDefault();
+    const button=event.submitter;
+    const payload={
+      action:"simpanPengaturanSemesterAdmin",
+      token:state.adminToken,
+      tahunPelajaran:$("semesterYear").value.trim(),
+      semester:$("semesterNumber").value,
+      tanggalMulai:$("semesterStart").value,
+      tanggalAkhir:$("semesterEnd").value,
+      status:$("semesterStatus").value
+    };
+    if(payload.tanggalMulai>payload.tanggalAkhir){
+      message("semesterFormMessage","Tanggal mulai tidak boleh melewati tanggal akhir.");
+      return;
+    }
+    setBusy(button,true,"Menyimpan periode…");
+    try{
+      const result=await api(payload);
+      if(result.status!=="success")throw new Error(result.message||"Periode gagal disimpan.");
+      message("semesterFormMessage",result.message||"Periode berhasil disimpan.","success");
+      resetSemesterForm();
+      await loadSemesterSettings();
+    }catch(err){
+      message("semesterFormMessage",err.message);
+    }finally{
+      setBusy(button,false);
+    }
+  }
+
+  async function activateSemester(index){
+    const x=semesterRows[index];
+    if(!x)return;
+    if(!confirm(`Aktifkan ${x.tahunPelajaran} Semester ${x.semester}? Periode aktif sebelumnya akan dinonaktifkan.`))return;
+    const payload={
+      action:"simpanPengaturanSemesterAdmin",
+      token:state.adminToken,
+      tahunPelajaran:x.tahunPelajaran,
+      semester:x.semester,
+      tanggalMulai:x.tanggalMulai,
+      tanggalAkhir:x.tanggalAkhir,
+      status:"Aktif"
+    };
+    try{
+      const result=await api(payload);
+      if(result.status!=="success")throw new Error(result.message||"Semester gagal diaktifkan.");
+      await loadSemesterSettings();
+    }catch(err){
+      alert(err.message);
+    }
+  }
+
+  $("semesterForm").addEventListener("submit",saveSemester);
+  $("refreshSemesters").addEventListener("click",loadSemesterSettings);
+  $("cancelSemesterEdit").addEventListener("click",resetSemesterForm);
   $("adminLogout").addEventListener("click",()=>{
     state.adminToken="";
     hide("adminApp");
