@@ -177,7 +177,7 @@
         <div class="eyebrow">Akses keluarga</div><h2>Masuk ke portal orang tua</h2>
         <p class="card-intro">Gunakan nomor HP yang terdaftar di sekolah dan PIN dari pihak sekolah.</p>
         <form id="parentLoginForm">
-          <div class="field"><label for="parentPhone">Nomor HP orang tua</label><input id="parentPhone" inputmode="tel" autocomplete="tel" placeholder="Contoh: 62812xxxxxxxx" required></div>
+          <div class="field"><label for="parentPhone">Nomor HP orang tua</label><input id="parentPhone" inputmode="tel" autocomplete="tel" placeholder="Contoh: 6281234567890" required></div>
           <div class="field"><label for="parentPin">PIN 6 digit</label><input id="parentPin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="Masukkan PIN" required></div>
           <button class="btn btn-primary btn-block" type="submit">Masuk ke portal <span aria-hidden="true">→</span></button>
           <div id="parentLoginMessage" aria-live="polite"></div>
@@ -277,6 +277,7 @@
       <div class="side-label">Administrasi portal</div>
       <button class="nav-btn active" data-admin-tab="announcements">▤ &nbsp; Kelola pengumuman</button>
       <button class="nav-btn" data-admin-tab="complaints">✉ &nbsp; Kelola pengaduan</button>
+      <button class="nav-btn" data-admin-tab="pinAccounts">🔐 &nbsp; Akun &amp; Reset PIN</button>
       <button class="nav-btn" data-admin-tab="semester">▦ &nbsp; Pengaturan semester</button>
       <div class="side-bottom"><button class="nav-btn" id="adminLogout">↪ &nbsp; Keluar admin</button></div>
     </aside>
@@ -292,6 +293,24 @@
         <div class="panel">
           <div class="content-head"><div><h2>Daftar masukan orang tua</h2><p>Identitas pengirim anonim tidak ditampilkan.</p></div><button class="btn btn-secondary" id="exportComplaints">Cetak PDF</button></div>
           <div id="adminComplaintsTable" class="table-wrap"><div class="empty">Memuat data…</div></div>
+        </div>
+      </div>
+      <div id="adminTabPinAccounts" class="admin-tab hidden">
+        <div class="panel">
+          <div class="content-head">
+            <div>
+              <h2>Akun PIN Orang Tua</h2>
+              <p>Cari akun berdasarkan nomor HP atau nama anak. Reset akan membuat PIN baru yang langsung berlaku permanen.</p>
+            </div>
+            <button class="btn btn-secondary" id="refreshPinAccounts" type="button">Muat ulang</button>
+          </div>
+          <div class="field">
+            <label for="pinAccountSearch">Cari nomor HP atau nama anak</label>
+            <input id="pinAccountSearch" placeholder="Ketik nomor HP atau nama anak…">
+          </div>
+          <div id="pinAccountsTable" class="table-wrap">
+            <div class="empty">Memuat data akun…</div>
+          </div>
         </div>
       </div>
       <div id="adminTabSemester" class="admin-tab hidden">
@@ -374,6 +393,24 @@
       <div class="field"><label>Catatan tindak lanjut</label><textarea id="updateComplaintNote" maxlength="3000"></textarea></div>
       <button class="btn btn-primary btn-block">Simpan tindak lanjut</button><div id="complaintUpdateMessage"></div>
     </form>
+  </div>
+</div>
+
+<div id="resetPinResultModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>PIN Baru Berhasil Dibuat</h2>
+      <button class="close" data-close="resetPinResultModal">×</button>
+    </div>
+    <p class="card-intro">Sampaikan PIN ini secara langsung kepada orang tua pemilik akun. PIN hanya ditampilkan pada hasil reset ini.</p>
+    <div class="panel" style="text-align:center;background:#f3f6f3">
+      <div style="font-size:11px;color:#718087">NOMOR HP</div>
+      <strong id="resetPinPhone"></strong>
+      <div style="font-size:11px;color:#718087;margin-top:18px">PIN BARU</div>
+      <div id="resetPinValue" style="font:800 30px Manrope;letter-spacing:6px;color:#173b52;margin:8px 0"></div>
+    </div>
+    <button class="btn btn-primary btn-block" id="copyResetPin" type="button">Salin PIN</button>
+    <p class="notice">PIN baru langsung aktif dan berlaku permanen. PIN lama sudah tidak berlaku.</p>
   </div>
 </div>
 
@@ -600,7 +637,13 @@
   $("parentComplaintForm").addEventListener("submit",e=>{e.preventDefault();submitComplaint($("parentComplaintCategory").value,$("parentComplaintText").value,false,"Orang tua terverifikasi","","parentComplaintMessage",e.currentTarget);});
 
   $("adminEntry").addEventListener("click",()=>show("adminLoginModal"));
-  document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>hide(b.dataset.close)));
+  document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>{
+    hide(b.dataset.close);
+    if(b.dataset.close==="resetPinResultModal"){
+      pinResetTerakhir="";
+      $("resetPinValue").textContent="";
+    }
+  }));
   $("adminLoginModal").addEventListener("click",e=>{if(e.target.id==="adminLoginModal")hide("adminLoginModal");});
   $("adminLoginForm").addEventListener("submit",async e=>{
     e.preventDefault();const btn=e.submitter;setBusy(btn,true,"Memeriksa akun…");clearMessage("adminLoginMessage");
@@ -612,8 +655,10 @@
     document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));
     $("adminTabAnnouncements").classList.toggle("hidden",tab!=="announcements");
     $("adminTabComplaints").classList.toggle("hidden",tab!=="complaints");
+    $("adminTabPinAccounts").classList.toggle("hidden",tab!=="pinAccounts");
     $("adminTabSemester").classList.toggle("hidden",tab!=="semester");
     if(tab==="complaints")loadAdminComplaints();
+    if(tab==="pinAccounts")loadPinAccounts();
     if(tab==="semester")loadSemesterSettings();
   }
   document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("click",()=>selectAdminTab(b.dataset.adminTab)));
@@ -799,6 +844,82 @@
     try{const r=await api({action:"updatePengaduanAdmin",token:state.adminToken,idPengaduan:$("updateComplaintId").value,status:$("updateComplaintStatus").value,catatan:$("updateComplaintNote").value});if(r.status!=="success")throw new Error(r.message||"Gagal menyimpan tindak lanjut.");message("complaintUpdateMessage",r.message||"Tersimpan.","success");await loadAdminComplaints();setTimeout(()=>hide("complaintModal"),700);}
     catch(err){message("complaintUpdateMessage",err.message);}finally{setBusy(btn,false);}
   });
+  // ================================
+  // AKUN ORANG TUA & RESET PIN ADMIN
+  // ================================
+  let daftarAkunPIN = [];
+  let pinResetTerakhir = "";
+
+  async function loadPinAccounts() {
+    $("pinAccountsTable").innerHTML = '<div class="empty">Memuat data akun…</div>';
+    try {
+      const r = await api({action:"getAkunPINAdmin",token:state.adminToken});
+      if (r.status !== "success") throw new Error(r.message || "Gagal memuat akun.");
+      daftarAkunPIN = r.akun || [];
+      renderPinAccounts();
+    } catch (err) {
+      $("pinAccountsTable").innerHTML = `<div class="message error">${escapeHTML(err.message)}</div>`;
+    }
+  }
+
+  function renderPinAccounts() {
+    const q = $("pinAccountSearch").value.trim().toLowerCase();
+    const hasil = daftarAkunPIN.filter(a =>
+      String(a.noHP || "").toLowerCase().includes(q) ||
+      String(a.anak || "").toLowerCase().includes(q)
+    );
+    if (!hasil.length) {
+      $("pinAccountsTable").innerHTML = '<div class="empty">Akun tidak ditemukan.</div>';
+      return;
+    }
+    $("pinAccountsTable").innerHTML = `
+      <table>
+        <thead><tr><th>Nomor HP</th><th>Nama Anak</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>${hasil.map(a => `
+          <tr>
+            <td><strong>${escapeHTML(a.noHP)}</strong></td>
+            <td>${escapeHTML(a.anak || "Tidak ada data anak")}</td>
+            <td>
+              <span class="pill ${a.status === "Aktif" ? "" : "off"}">${escapeHTML(a.status || "Tidak diketahui")}</span>
+              ${a.terkunci ? '<br><span class="pill off">Terkunci</span>' : ""}
+              ${a.wajibGanti ? '<br><span class="pill off">Wajib ganti PIN</span>' : ""}
+            </td>
+            <td><button class="btn btn-danger" data-reset-pin="${escapeHTML(a.noHP)}" ${a.status !== "Aktif" ? "disabled" : ""}>Reset PIN</button></td>
+          </tr>`).join("")}</tbody>
+      </table>`;
+    document.querySelectorAll("[data-reset-pin]").forEach(btn => {
+      btn.addEventListener("click", () => resetParentPin(btn.dataset.resetPin));
+    });
+  }
+
+  async function resetParentPin(noHP) {
+    if (!confirm("Reset PIN untuk akun " + noHP + "?\n\nPIN lama langsung tidak berlaku. PIN baru akan langsung aktif dan berlaku permanen.")) return;
+    try {
+      const r = await api({action:"resetPINOrangTuaAdmin",token:state.adminToken,noHP});
+      if (r.status !== "success") throw new Error(r.message || "Reset PIN gagal.");
+      pinResetTerakhir = r.pinBaru;
+      $("resetPinPhone").textContent = r.noHP;
+      $("resetPinValue").textContent = r.pinBaru;
+      $("copyResetPin").textContent = "Salin PIN";
+      show("resetPinResultModal");
+      await loadPinAccounts();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  $("copyResetPin").addEventListener("click", async () => {
+    if (!pinResetTerakhir) return;
+    try {
+      await navigator.clipboard.writeText(pinResetTerakhir);
+      $("copyResetPin").textContent = "PIN berhasil disalin";
+    } catch (err) {
+      alert("Tidak dapat menyalin otomatis. Silakan salin PIN yang tampil.");
+    }
+  });
+  $("pinAccountSearch").addEventListener("input", renderPinAccounts);
+  $("refreshPinAccounts").addEventListener("click", loadPinAccounts);
+
   $("exportComplaints").addEventListener("click",async()=>{
     const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1),last=new Date(now.getFullYear(),now.getMonth()+1,0);
     const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
