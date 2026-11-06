@@ -148,7 +148,7 @@
         <div class="eyebrow">Akses keluarga</div><h2>Masuk ke portal orang tua</h2>
         <p class="card-intro">Gunakan nomor HP yang terdaftar di sekolah dan PIN dari pihak sekolah.</p>
         <form id="parentLoginForm">
-          <div class="field"><label for="parentPhone">Nomor HP orang tua</label><input id="parentPhone" inputmode="tel" autocomplete="tel" placeholder="Contoh: 62812xxxxxxxx" required></div>
+          <div class="field"><label for="parentPhone">Nomor HP orang tua</label><input id="parentPhone" inputmode="tel" autocomplete="tel" placeholder="Contoh: 0812xxxxxxxx" required></div>
           <div class="field"><label for="parentPin">PIN 6 digit</label><input id="parentPin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="Masukkan PIN" required></div>
           <button class="btn btn-primary btn-block" type="submit">Masuk ke portal <span aria-hidden="true">→</span></button>
           <div id="parentLoginMessage" aria-live="polite"></div>
@@ -359,7 +359,14 @@
     if(tab==="complaints")loadAdminComplaints();
   }
   document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("click",()=>selectAdminTab(b.dataset.adminTab)));
-  $("adminLogout").addEventListener("click",()=>{state.adminToken="";hide("adminApp");show("publicView");$("adminLoginForm").reset();});
+  $("adminLogout").addEventListener("click",()=>{
+    state.adminToken="";
+    hide("adminApp");
+    show("publicView");
+    $("adminLoginForm").reset();
+    // Ambil pengumuman terbaru segera setelah Admin keluar.
+    loadPublicAnnouncements();
+  });
   $("newAnnouncement").addEventListener("click",()=>openAnnouncement());
   function openAnnouncement(item=null){
     $("announcementForm").reset();$("announcementId").value=item?.id||"";$("announcementTitle").value=item?.judul||"";$("announcementBody").value=item?.isi||"";$("announcementStart").value=item?.tanggalMulai||"";$("announcementEnd").value=item?.tanggalSelesai||"";$("announcementOrder").value=item?.urutan||1;$("announcementStatus").value=item?.status||"Aktif";$("announcementModalTitle").textContent=item?"Edit pengumuman":"Pengumuman baru";clearMessage("announcementFormMessage");show("announcementModal");
@@ -410,8 +417,24 @@
     catch(e){alert(e.message);}
   });
 
-  window.addEventListener("DOMContentLoaded",loadPublicAnnouncements);
+  window.addEventListener("DOMContentLoaded",()=>{
+    loadPublicAnnouncements();
+
+    // Periksa pengumuman terbaru setiap 60 detik selama halaman portal terbuka.
+    // Polling dihentikan sementara ketika tab browser tidak sedang terlihat.
+    window.setInterval(()=>{
+      if(!document.hidden && !$("publicView").classList.contains("hidden")){
+        loadPublicAnnouncements();
+      }
+    },60000);
+
+    // Saat pengguna kembali ke tab portal, perbarui pengumuman saat itu juga.
+    document.addEventListener("visibilitychange",()=>{
+      if(!document.hidden && !$("publicView").classList.contains("hidden")){
+        loadPublicAnnouncements();
+      }
+    });
+  });
 </script>
 </body>
 </html>
-
